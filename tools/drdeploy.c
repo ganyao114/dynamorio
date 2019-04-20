@@ -972,6 +972,8 @@ switch_to_native_tool(const char **app_argv, const char *native_tool, char *tool
 }
 #endif /* DRRUN */
 
+
+//drrun main
 int
 _tmain(int argc, TCHAR *targv[])
 {
@@ -1384,6 +1386,7 @@ _tmain(int argc, TCHAR *targv[])
                      * cannot be overridden by DR options passed here.
                      * The user must use -c or -client to do that.
                      */
+                    //读取 client so
                     if (!read_tool_file(client, dr_root, dr_platform, client_buf,
                                         BUFFER_SIZE_ELEMENTS(client_buf), extra_ops,
                                         BUFFER_SIZE_ELEMENTS(extra_ops), &extra_ops_sofar,
@@ -1396,6 +1399,7 @@ _tmain(int argc, TCHAR *targv[])
                     client = client_buf;
                 }
 
+                //client 的参数
                 /* Treat everything up to -- or end of argv as client args. */
                 i++;
                 while (i < argc && strcmp(argv[i], "--") != 0) {
@@ -1409,6 +1413,7 @@ _tmain(int argc, TCHAR *targv[])
                                      &client_sofar, "\"%s\"", argv[i]);
                     i++;
                 }
+                //添加 client
                 append_client(client, 0, single_client_ops, client_paths, client_ids,
                               client_options, &num_clients);
             }
@@ -1442,6 +1447,7 @@ done_with_options:
     /* Support no app if the tool has its own frontend, under the assumption
      * it may have post-processing or other features.
      */
+    //获取输入 bin 的全路径
     if (i < argc || native_tool[0] == '\0') {
 #    endif
         if (i >= argc)
@@ -1627,6 +1633,7 @@ done_with_options:
         info("configuration directory is \"%s\"", buf);
     }
 #    ifdef UNIX
+
     /* i#1676: detect whether under gdb */
     char path_buf[MAXIMUM_PATH];
     _snprintf(path_buf, BUFFER_SIZE_ELEMENTS(path_buf), "/proc/%d/exe", getppid());
@@ -1641,12 +1648,14 @@ done_with_options:
     /* On Linux, we use exec by default to create the app process.  This matches
      * our drrun shell script and makes scripting easier for the user.
      */
+    //准备 exec 的 env，注入 inject
     if (limit == 0 && !use_ptrace && !kill_group) {
         info("will exec %s", app_name);
         errcode = dr_inject_prepare_to_exec(app_name, app_argv, &inject_data);
     } else
 #    endif /* UNIX */
-    {
+    {   
+        // 创建目标进程
         errcode = dr_inject_process_create(app_name, app_argv, &inject_data);
         info("created child with pid %d for %s", dr_inject_get_process_id(inject_data),
              app_name);
@@ -1719,6 +1728,7 @@ done_with_options:
 #    endif
 
 #    ifdef UNIX
+// 使用 ptrace 注入
     if (use_ptrace) {
         if (!dr_inject_prepare_to_ptrace(inject_data)) {
             error("unable to use ptrace");

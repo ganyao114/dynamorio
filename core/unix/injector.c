@@ -276,6 +276,7 @@ pre_execve_early(dr_inject_info_t *info, const char *exe)
         setenv(DYNAMORIO_VAR_NO_EMULATE_BRK, exe, true /*overwrite*/);
 }
 
+// exec 目标程序
 static void
 execute_exec(dr_inject_info_t *info, const char *toexec)
 {
@@ -306,9 +307,12 @@ execute_exec(dr_inject_info_t *info, const char *toexec)
     execv(toexec, (char **)info->argv);
 }
 
+
+// fork 出目标进程
 static process_id_t
 fork_suspended_child(const char *exe, dr_inject_info_t *info, int fds[2])
 {
+    // fork
     process_id_t pid = fork();
     if (pid == 0) {
         /* child, suspend before exec */
@@ -318,6 +322,7 @@ fork_suspended_child(const char *exe, dr_inject_info_t *info, int fds[2])
         const char *real_exe = NULL;
         const char *arg;
         close(fds[1]); /* Close writer in child, keep reader. */
+        // 读数据
         do {
             nread = read(fds[0], pipe_cmd + sofar, BUFFER_SIZE_BYTES(pipe_cmd) - sofar);
             sofar += nread;
@@ -340,14 +345,17 @@ fork_suspended_child(const char *exe, dr_inject_info_t *info, int fds[2])
             /* If using ptrace, we're already attached and will walk across the
              * execv.
              */
+            //使用 ptrace 注入则跳过 exec
             real_exe = exe;
         } else if (strstr(pipe_cmd, "exec_dr ") == pipe_cmd) {
+            // 
             pre_execve_early(info, exe);
             real_exe = arg;
         }
         /* Trigger automated takeover in case DR is statically linked (yes
          * we blindly do this rather than try to pass in a parameter).
          */
+        // exec 目标程序
         setenv("DYNAMORIO_TAKEOVER_IN_INIT", "1", true /*overwrite*/);
         execute_exec(info, real_exe);
         /* If execv returns, there was an error. */
@@ -471,6 +479,8 @@ exe_is_right_bitwidth(const char *exe, int *errcode)
 
 /* Returns 0 on success.
  */
+
+// 创建目标进程
 DR_EXPORT
 int
 dr_inject_process_create(const char *exe, const char **argv, void **data OUT)
@@ -507,6 +517,7 @@ dr_inject_process_create(const char *exe, const char **argv, void **data OUT)
     if (r != 0)
         goto error;
     info->argv = argv;
+    // fork 出目标进程
     info->pid = fork_suspended_child(exe, info, fds);
     close(fds[0]); /* Close reader, keep writer. */
     info->pipe_fd = fds[1];
@@ -523,6 +534,7 @@ error:
     return errno;
 }
 
+// 设置 env，注入 inject
 DR_EXPORT
 int
 dr_inject_prepare_to_exec(const char *exe, const char **argv, void **data OUT)
