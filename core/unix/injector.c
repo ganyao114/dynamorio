@@ -322,7 +322,7 @@ fork_suspended_child(const char *exe, dr_inject_info_t *info, int fds[2])
         const char *real_exe = NULL;
         const char *arg;
         close(fds[1]); /* Close writer in child, keep reader. */
-        // 读数据
+        // 读数据，等待写入核心注入库的路径
         do {
             nread = read(fds[0], pipe_cmd + sofar, BUFFER_SIZE_BYTES(pipe_cmd) - sofar);
             sofar += nread;
@@ -339,6 +339,7 @@ fork_suspended_child(const char *exe, dr_inject_info_t *info, int fds[2])
             /* If nothing was written to the pipe, let it run natively. */
             real_exe = exe;
         } else if (strstr(pipe_cmd, "ld_preload ") == pipe_cmd) {
+            // setenv ld_preload
             pre_execve_ld_preload(arg);
             real_exe = exe;
         } else if (strcmp("ptrace", pipe_cmd) == 0) {
@@ -400,6 +401,7 @@ inject_early(dr_inject_info_t *info, const char *library_path)
     return true;
 }
 
+// 使用 ld_preload 注入 dnm 库
 static bool
 inject_ld_preload(dr_inject_info_t *info, const char *library_path)
 {
@@ -669,6 +671,7 @@ dr_inject_process_inject(void *data, bool force_injection, const char *library_p
     /* Read the autoinject var from the config file if the caller didn't
      * override it.
      */
+    //获取 dnm 核心注入库
     if (library_path == NULL) {
         if (!get_config_val_other_app(
                 info->image_name, info->pid, platform, DYNAMORIO_VAR_AUTOINJECT,

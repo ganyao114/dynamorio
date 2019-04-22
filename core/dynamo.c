@@ -35,6 +35,8 @@
 /* Copyright (c) 2001-2003 Massachusetts Institute of Technology */
 /* Copyright (c) 2000-2001 Hewlett-Packard Company */
 
+
+// ld_preload 入口
 /*
  * dynamo.c -- initialization and cleanup routines for DynamoRIO
  */
@@ -382,6 +384,8 @@ get_dr_stats(void)
  * threads are created and before any other API calls are made;
  * returns zero on success, non-zero on failure
  */
+
+// dnm init
 DYNAMORIO_EXPORT int
 dynamorio_app_init(void)
 {
@@ -410,6 +414,9 @@ dynamorio_app_init(void)
              * complex to recover from execve failure, so instead we pass which
              * TLS index we had.
              */
+
+            //X86 初始化 GDT，ARM 跳过
+            // thread local storage init
             os_tls_pre_init(atoi(getenv(DYNAMORIO_VAR_EXECVE)));
 #    endif
             /* important to remove it, don't want to propagate to forked children, etc. */
@@ -424,6 +431,7 @@ dynamorio_app_init(void)
             /* default non-zero dynamo settings (options structure is
              * initialized to 0 automatically)
              */
+            // debug 模式初始化分析器
 #ifdef DEBUG
 #    ifndef INTERNAL
         nonshared_stats.logmask = LOG_ALL_RELEASE;
@@ -432,7 +440,7 @@ dynamorio_app_init(void)
 #    endif
         statistics_pre_init();
 #endif
-
+        //读 config
         d_r_config_init();
         options_init();
 #ifdef WINDOWS
@@ -489,7 +497,7 @@ dynamorio_app_init(void)
         /* Must be before {vmm,d_r}_heap_init() */
         vmk_init_lib();
 #endif
-
+        // 堆初始化
         /* initialize components (CAUTION: order is important here) */
         vmm_heap_init(); /* must be called even if not using vmm heap */
 #ifdef CLIENT_INTERFACE
@@ -499,6 +507,7 @@ dynamorio_app_init(void)
          */
         instrument_load_client_libs();
 #endif
+        //   
         d_r_heap_init();
         dynamo_heap_initialized = true;
 
@@ -523,11 +532,15 @@ dynamorio_app_init(void)
         if (dr_earliest_injected)
             earliest_inject_cleanup(dr_earliest_inject_args);
 #endif
-
+        // 虚拟内存空间初始化
         dynamo_vm_areas_init();
+        
         d_r_decode_init();
+        // 虚拟 cpu 初始化
         proc_init();
+        //
         modules_init(); /* before vm_areas_init() */
+        // 初始化操作系统相关
         d_r_os_init();
         config_heap_init(); /* after heap_init */
 

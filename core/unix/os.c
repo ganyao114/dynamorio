@@ -876,12 +876,14 @@ d_r_os_init(void)
     ASSERT_CURIOSITY(kernel_thread_groups);
 #endif
 
+    //pid
     pid_cached = get_process_id();
 
 #ifdef VMX86_SERVER
     vmk_init();
 #endif
 
+    //捕捉信号
     d_r_signal_init();
     /* We now set up an early fault handler for d_r_safe_read() (i#350) */
     fault_handling_initialized = true;
@@ -2127,6 +2129,8 @@ os_tls_get_gdt_index(dcontext_t *dcontext)
         return -1;
 }
 
+
+//X86 初始化 GDT，ARM 跳过
 void
 os_tls_pre_init(int gdt_index)
 {

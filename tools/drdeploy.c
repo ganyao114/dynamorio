@@ -1481,6 +1481,7 @@ done_with_options:
      * (FYI: if we were using WinMain, the pzsCmdLine passed in
      *  does not have our own app name in it)
      */
+    //目标 bin 参数
     app_argv = (const char **)&argv[i - 1];
     if (verbose) {
         c = buf;

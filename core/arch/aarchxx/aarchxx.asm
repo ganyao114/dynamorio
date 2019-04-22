@@ -38,6 +38,7 @@
 #include "../asm_defines.asm"
 START_FILE
 
+#入口
 #ifdef UNIX
 # if !defined(STANDALONE_UNIT_TEST) && !defined(STATIC_LIBRARY)
         DECLARE_FUNC(_start)

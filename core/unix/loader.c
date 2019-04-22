@@ -1761,6 +1761,7 @@ reload_dynamorio(void **init_sp, app_pc conflict_start, app_pc conflict_end)
  * We assume that _start has already called relocate_dynamorio() for us and
  * that it is now safe to access globals.
  */
+// 入口
 void
 privload_early_inject(void **sp, byte *old_libdr_base, size_t old_libdr_size)
 {
@@ -1838,11 +1839,13 @@ privload_early_inject(void **sp, byte *old_libdr_base, size_t old_libdr_size)
      */
     set_executable_path(exe_path);
 
+    //load exe 头
     success = elf_loader_read_headers(&exe_ld, exe_path);
     apicheck(success,
              "Failed to read app ELF headers.  Check path and "
              "architecture.");
 
+    //确定 exe 内存范围
     /* Find range of app */
     exe_map = module_vaddr_from_prog_header((app_pc)exe_ld.phdrs, exe_ld.ehdr->e_phnum,
                                             NULL, &exe_end);
@@ -1904,11 +1907,14 @@ privload_early_inject(void **sp, byte *old_libdr_base, size_t old_libdr_size)
     } else {
         exe_basename++;
     }
+
+    //设置进程名
     dynamorio_syscall(SYS_prctl, 5, PR_SET_NAME, (ptr_uint_t)exe_basename, 0, 0, 0);
 
     reserve_brk(exe_map + exe_ld.image_size +
                 (INTERNAL_OPTION(separate_private_bss) ? PAGE_SIZE : 0));
 
+    // interp 段
     interp = elf_loader_find_pt_interp(&exe_ld);
     if (interp != NULL) {
         /* Load the ELF pointed at by PT_INTERP, usually ld.so. */
@@ -1944,6 +1950,8 @@ privload_early_inject(void **sp, byte *old_libdr_base, size_t old_libdr_size)
      * find_executable_vm_areas re-discover the mappings we made for the app and
      * interp images.
      */
+
+    //初始化 dnm
     dynamorio_app_init();
 
     LOG(GLOBAL, LOG_TOP, 1, "early injected into app with this cmdline:\n");
