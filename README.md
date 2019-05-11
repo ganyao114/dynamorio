@@ -42,7 +42,7 @@ online](http://dynamorio.org/docs/).  [Slides from our past tutorials are
 also available](https://github.com/DynamoRIO/dynamorio/wiki/Downloads).
 
 <details>
-<summary>**Downloading DynamoRIO**</summary>
+**<summary>标签与正文间一定要空一行！！！**
   
 DynamoRIO is available free of charge as a [binary package for both Windows
 and Linux](https://github.com/DynamoRIO/dynamorio/wiki/Downloads).
@@ -50,7 +50,6 @@ DynamoRIO's [source code is
 available](https://github.com/DynamoRIO/dynamorio) under a [BSD
 license](https://github.com/DynamoRIO/dynamorio/blob/master/License.txt).
 
-**<summary>标签与正文间一定要空一行！！！**
 </details>
 
 ## Obtaining Help
